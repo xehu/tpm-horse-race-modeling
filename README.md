@@ -4,6 +4,7 @@ The aim of this repository is to organize the data cleaning and model building c
 
 The blueprint for this repository is as follows:
 
+```
 ├── datasets/ (This is where we need to move the data cleaning.)
 ├── features/
 │   ├── team-process-map/ (This is a git submodule that defines the communication features.)
@@ -21,5 +22,6 @@ The blueprint for this repository is as follows:
 ├── sandbox.ipynb (Any other fun explorations to do in a notebook)
 ├── run_model.py **Main Driver**: This is what we use to actually run everything else; the equivalent in the featurizer is `featurize.py`, which simply calls the other classes.
 └── .gitignore
+```
 
 The vision is to encapsulate the data cleaning (`data.py`) and modeling (`models`) capacities, so that different iterations of models, feature selection, etc. can be efficiently tested and iterated upon. The repository also aims to ensure clean, reproducible code so that the project can be open-sourced (and replicated!) upon completion.
