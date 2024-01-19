@@ -15,7 +15,7 @@ The blueprint for this repository is as follows:
 │   ├── model_instance.py **Class**: defines a Model() object. Starting implementations: LASSO, Ridge, Random Forest ... etc. (all the basics that we had before)
 ├── experiment_configs/  (.yaml files where we define the kinds of experiments we want to run)
 ├── data_cache/ (Where we save Dataset() objects as .pkl files)
-├── model_cache/ (Where we save Model() objects as .pkl files
+├── model_cache/ (Where we save Model() objects as .pkl files)
 ├── viz/
 │   ├── visualization_tools.py (Saves all the previous tools we had for visualization)
 │   ├── viz.ipynb (Sandbox for exploring data viz)
