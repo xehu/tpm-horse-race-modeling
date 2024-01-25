@@ -174,9 +174,8 @@ class HorseRaceDataSet:
         for varname in self.composition_vars:
             composition_cols.append(varname + "_nanmean")
             composition_cols.append(varname + "_nanstd")
-        assert set(composition_cols) <= set(list(self.data.columns)), "The desired composition variables are not found in the data."
-        assert set(self.task_vars) <= set(list(self.data.columns)), "The desired task variables are not found in the data."
-        print(set(self.data[self.task_name_col].drop_duplicates()))
+        assert set(composition_cols) <= set(self.data.columns), "The desired composition variables are not found in the data."
+        assert set(self.task_vars)<=set(self.data.columns), "The desired task variables are not found in the data."
         assert set(self.task_name_mapping.keys()) <= set(self.data[self.task_name_col].drop_duplicates()), "The desired task names in the dictionary are not found in the data."
         assert self.total_messages_varname in self.data.columns, "There is no variable for the total number of messages in the dataset; this variable is required for processing the data."
 

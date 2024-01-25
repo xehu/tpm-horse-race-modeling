@@ -1,0 +1,28 @@
+# config_test.yaml
+data_paths:
+  input: ./features/team-process-map/feature_engine/data/raw_data/multi_task_TINY.csv
+  output_chat: ./data_cache/raw_output/chat/multi_task_TINY_output_chat_level.csv
+  output_user: ./data_cache/raw_output/user/multi_task_TINY_output_user_level.csv
+  output_conv: ./data_cache/raw_output/conv/multi_task_TINY_output_conversation_level.csv
+  output_pkl: ./data_cache/tiny_multi_task.pkl
+conv_featurizer_options:
+  analyze_first_pct:
+    - 1
+  turns: false
+  conversation_id: stageId
+  cumulative_grouping: False
+  within_task: false
+cleaning_options:
+  min_num_chats: 2
+variable_options:
+  composition_vars:
+    - birth_year
+    - CRT
+  task_name_mapping:
+    "Sudoku": "Sudoku"
+    "Moral Reasoning": "Moral Reasoning (Disciplinary Action Case)"
+    "Writing Story": "Writing story"
+    "Room Assignment": "Room assignment task"
+    "Allocating Resources": "Allocating resources to programs"
+    "Divergent Association": "Divergent Association Task"
+    "Word Construction": "Word construction from a subset of letters"
