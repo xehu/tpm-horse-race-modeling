@@ -1,3 +1,6 @@
 [submodule "team-process-map"]
 	path = team-process-map
 	url = https://github.com/Watts-Lab/team-process-map
+[submodule "features/task-mapping"]
+	path = features/task-mapping
+	url = https://github.com/Watts-Lab/task-mapping.git
