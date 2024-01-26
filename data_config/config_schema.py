@@ -1,7 +1,7 @@
 # config_schema.py
 config_schema = {
     "data_paths": {
-        "input": str,
+        "output_cleaned": str,
         "output_chat": str,
         "output_user": str,
         "output_conv": str,
@@ -19,6 +19,8 @@ config_schema = {
         "num_conversation_components": None,
         "fillna_options": "mean",
         "standardize_dv": True,
+        "use_mean_for_roundId": False,
+        "tiny": False
     },
     "format_options":{
         "task_name_index": 0,

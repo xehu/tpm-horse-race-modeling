@@ -105,7 +105,6 @@ class HorseRaceDataSet:
         # preprocess data
         self.read_and_preprocess_data()
 
-
     def drop_invariant_columns(self, df) -> pd.DataFrame:
         """
         Certain features are invariant throughout the training data (e.g., the entire column is 0 throughout).

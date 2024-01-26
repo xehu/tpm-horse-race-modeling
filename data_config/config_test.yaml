@@ -1,6 +1,6 @@
 # config_test.yaml
 data_paths:
-  input: ./features/team-process-map/feature_engine/data/raw_data/multi_task_TINY.csv
+  output_cleaned: ./tpm-data/cleaned_data/test_data/multi_task_TINY.csv
   output_chat: ./data_cache/raw_output/chat/multi_task_TINY_output_chat_level.csv
   output_user: ./data_cache/raw_output/user/multi_task_TINY_output_user_level.csv
   output_conv: ./data_cache/raw_output/conv/multi_task_TINY_output_conversation_level.csv
@@ -11,9 +11,10 @@ conv_featurizer_options:
   turns: false
   conversation_id: stageId
   cumulative_grouping: False
-  within_task: false
+  within_task: False
 cleaning_options:
   min_num_chats: 2
+  tiny: True
 variable_options:
   composition_vars:
     - birth_year

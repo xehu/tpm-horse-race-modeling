@@ -15,13 +15,14 @@ import yaml
 from data_config.config_schema import config_schema
 import argparse
 import pickle
+clean_multi_task_data = import_module('tpm-data.data_cleaning.clean_multi_task_data').clean_multi_task_data
 
 def read_and_validate_config(config_schema, config_test):
 	# Read config_test.yaml
 	with open(config_test, 'r') as file:
 		config_data = yaml.safe_load(file)
 
-	# Validate the schema
+	# Validate the yaml schema
 	for section, schema in config_schema.items():
 		if section not in config_data:
 			config_data[section] = {}  # Create empty section if not provided
@@ -39,7 +40,6 @@ def read_and_validate_config(config_schema, config_test):
 
 	return data_paths, conv_featurizer_options, cleaning_options, format_options, variable_options
 
-
 def call_FeatureBuilder(data_paths, conv_featurizer_options):
 	sys.path.insert(0, './features/team-process-map/feature_engine/')
 	FeatureBuilder = import_module("features.team-process-map.feature_engine.feature_builder").FeatureBuilder
@@ -47,7 +47,7 @@ def call_FeatureBuilder(data_paths, conv_featurizer_options):
 	feature_builder = FeatureBuilder(
 		# TODO --- update input file path once the dataset submodule is all set up
 		# This will eventually point to the datasets folder
-		input_file_path = data_paths["input"],
+		input_file_path = data_paths["output_cleaned"],
 		output_file_path_chat_level = data_paths["output_chat"],
 		output_file_path_user_level = data_paths["output_user"],
 		output_file_path_conv_level = data_paths["output_conv"],
@@ -72,8 +72,13 @@ if __name__ == "__main__":
 		data_paths, conv_featurizer_options, cleaning_options, format_options, variable_options = read_and_validate_config(config_schema, config_file_path)
 
 		# Raw Data Cleaning Stage
-		# TODO --- set up the data cleaning in `tpm-data`
-		# We should be able to run the data cleaning as a script here
+		if not os.path.isfile(data_paths["output_cleaned"]):
+			clean_multi_task_data(
+				output_path = data_paths["output_cleaned"],
+				conversation_id = conv_featurizer_options["conversation_id"],
+				use_mean_for_roundId = cleaning_options["use_mean_for_roundId"],
+				tiny = cleaning_options["tiny"],
+			)
 
 		# Featurization Stage
 		# If data is not featurizer, run the FeatureBuilder
@@ -103,6 +108,3 @@ if __name__ == "__main__":
 
 	else:
 		print("No arguments provided. Usage: --clean [config]")
-
-
-

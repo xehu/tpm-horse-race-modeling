@@ -4,3 +4,6 @@
 [submodule "features/task-mapping"]
 	path = features/task-mapping
 	url = https://github.com/Watts-Lab/task-mapping.git
+[submodule "tpm-data"]
+	path = tpm-data
+	url = https://github.com/Watts-Lab/tpm-data
