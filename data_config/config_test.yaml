@@ -1,5 +1,9 @@
 # config_test.yaml
 data_paths:
+  raw_round_data_path: raw_data/multi_task_data_with_dv_by_rounds.csv
+  raw_stage_data_path: raw_data/multi_task_stages.csv
+  raw_user_data_path: raw_data/results_by_user_detailed.csv
+  vector_directory: ./tpm-data/vector_data/
   output_cleaned: ./tpm-data/cleaned_data/test_data/multi_task_TINY.csv
   output_chat: ./data_cache/raw_output/chat/multi_task_TINY_output_chat_level.csv
   output_user: ./data_cache/raw_output/user/multi_task_TINY_output_user_level.csv

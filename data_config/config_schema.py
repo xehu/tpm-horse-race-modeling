@@ -1,6 +1,9 @@
 # config_schema.py
 config_schema = {
     "data_paths": {
+        "raw_round_data_path": str,
+        "raw_stage_data_path": str,
+        "raw_user_data_path": str,
         "output_cleaned": str,
         "output_chat": str,
         "output_user": str,

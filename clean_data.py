@@ -45,9 +45,8 @@ def call_FeatureBuilder(data_paths, conv_featurizer_options):
 	FeatureBuilder = import_module("features.team-process-map.feature_engine.feature_builder").FeatureBuilder
 
 	feature_builder = FeatureBuilder(
-		# TODO --- update input file path once the dataset submodule is all set up
-		# This will eventually point to the datasets folder
 		input_file_path = data_paths["output_cleaned"],
+		vector_directory = data_paths["vector_directory"],
 		output_file_path_chat_level = data_paths["output_chat"],
 		output_file_path_user_level = data_paths["output_user"],
 		output_file_path_conv_level = data_paths["output_conv"],
@@ -74,6 +73,9 @@ if __name__ == "__main__":
 		# Raw Data Cleaning Stage
 		if not os.path.isfile(data_paths["output_cleaned"]):
 			clean_multi_task_data(
+				raw_round_data_path = data_paths["raw_round_data_path"],
+				raw_stage_data_path = data_paths["raw_stage_data_path"],
+				raw_user_data_path = data_paths["raw_user_data_path"],
 				output_path = data_paths["output_cleaned"],
 				conversation_id = conv_featurizer_options["conversation_id"],
 				use_mean_for_roundId = cleaning_options["use_mean_for_roundId"],
