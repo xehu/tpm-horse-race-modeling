@@ -1,7 +1,7 @@
 """
-file: run_model.py
+file: clean_data.py
 ---
-This file is the main driver of the model pipeline.
+This file is the main driver of the data cleaning pipeline.
 
 """
 
@@ -12,18 +12,17 @@ import sys
 from data import HorseRaceDataSet
 from importlib import import_module
 import yaml
-from data_config.config_schema import config_schema
+from data_config.data_config_schema import data_config_schema
 import argparse
 import pickle
 clean_multi_task_data = import_module('tpm-data.data_cleaning.clean_multi_task_data').clean_multi_task_data
 
-def read_and_validate_config(config_schema, config_test):
-	# Read config_test.yaml
-	with open(config_test, 'r') as file:
+def read_and_validate_config(data_config_schema, user_provided_config):
+	with open(user_provided_config, 'r') as file:
 		config_data = yaml.safe_load(file)
 
 	# Validate the yaml schema
-	for section, schema in config_schema.items():
+	for section, schema in data_config_schema.items():
 		if section not in config_data:
 			config_data[section] = {}  # Create empty section if not provided
 
@@ -68,7 +67,7 @@ if __name__ == "__main__":
 
 	if args.clean:
 		config_file_path = args.clean[0]
-		data_paths, conv_featurizer_options, cleaning_options, format_options, variable_options = read_and_validate_config(config_schema, config_file_path)
+		data_paths, conv_featurizer_options, cleaning_options, format_options, variable_options = read_and_validate_config(data_config_schema, config_file_path)
 
 		# Raw Data Cleaning Stage
 		if not os.path.isfile(data_paths["output_cleaned"]):
@@ -98,6 +97,7 @@ if __name__ == "__main__":
 				task_name_index = format_options["task_name_index"],
 				complexity_name_index = format_options["complexity_name_index"],
 				total_messages_varname = format_options["total_messages_varname"],
+				team_size_varname = format_options["team_size_varname"],
 				dvs = variable_options["dvs"],
 				composition_vars = variable_options["composition_vars"],
 				task_vars = variable_options["task_vars"],

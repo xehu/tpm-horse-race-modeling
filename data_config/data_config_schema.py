@@ -1,5 +1,5 @@
-# config_schema.py
-config_schema = {
+# data_config_schema.py
+data_config_schema = {
     "data_paths": {
         "raw_round_data_path": str,
         "raw_stage_data_path": str,
@@ -29,6 +29,7 @@ config_schema = {
         "task_name_index": 0,
         "complexity_name_index": 1,
         "total_messages_varname": "sum_num_messages",
+        "team_size_varname": "playerCount"
     },
     "variable_options":{
         "dvs": None,

@@ -23,6 +23,7 @@ variable_options:
   composition_vars:
     - birth_year
     - CRT
+    - playerCount
   task_name_mapping:
     "Sudoku": "Sudoku"
     "Moral Reasoning": "Moral Reasoning (Disciplinary Action Case)"

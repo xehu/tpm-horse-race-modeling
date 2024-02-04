@@ -11,6 +11,15 @@ The objectives of this class are:
 - Apply any hand-chosen filters (e.g., looking at only a subset of the columns)
 - Store these features/DV's into attributes of the class
 
+Key attributes of an instance of this class:
+- self.task_name: the column containing task names
+- self.task_features: the Task Features
+- self.task_complexity_features: the Task Complexity Features
+- self.composition_features: the Team Composition Features
+- self.size_feature: the Team Size Feature
+- self.conversation_features: the Team Conversation Features (from TPM)
+- self.dvs: the dependent variables
+
 """
 
 # 3rd Party Imports
@@ -26,6 +35,7 @@ class HorseRaceDataSet:
         task_name_index = 0,
         complexity_name_index = 1,
         total_messages_varname = "sum_num_messages",
+        team_size_varname = "playerCount",
         fillna_options = "mean", 
         standardize_dv = True,
         dvs = None,
@@ -45,6 +55,7 @@ class HorseRaceDataSet:
         @task_name_index (Defaults to 0): in the parameter `task_vars`, the index of the item that contains the task name.
         @complexity_name_index (Defaults to 1): in the parameter `task_vars,` the index of the item that contains the complexity
         @total_messages_varname (Defaults to "sum_num_messages"): The name of the variable that tracks the number of messages per conversation
+        @team_size_varname (Defaults to "playerCount"): The name of the variable that tracks the number of members/players per team
         @fillna_options (defaults to "mean"): uses the mean of a column to fill NA values.
         @standardize_dv (defaults to True): standardize the dependent variable(s)
 
@@ -66,6 +77,7 @@ class HorseRaceDataSet:
         self.task_name_index = task_name_index
         self.complexity_name_index = complexity_name_index
         self.total_messages_varname = total_messages_varname
+        self.team_size_varname = team_size_varname
         self.fillna_options = fillna_options
         self.standardize_dv = standardize_dv
 
@@ -89,6 +101,8 @@ class HorseRaceDataSet:
 
         self.dvs = dvs if dvs is not None else dvs_default
         self.composition_vars = composition_vars if composition_vars is not None else composition_default
+        # Break out the team size from the composition variables
+        self.composition_vars.remove(self.team_size_varname)
         self.task_vars = task_vars if task_vars is not None else task_vars_default
         self.task_name_mapping = task_name_mapping if task_name_mapping is not None else task_name_mapping_default
 
@@ -127,16 +141,24 @@ class HorseRaceDataSet:
         task.loc[:, self.task_name_col] = task[self.task_name_col].replace(self.task_name_mapping)
         task = pd.merge(left=task, right=self.task_map, on = self.task_name_col, how='left')
         
-        # Create dummy columns for 'complexity'
-        complexity_dummies = pd.get_dummies(task[self.complexity_col])
-        task = pd.concat([task, complexity_dummies], axis=1)   
+        # Save Task Name in another column
+        self.task_name = task[self.task_name_col]
+
+        # Drop task name and task complexity from the task features
         task.drop([self.task_name_col, self.complexity_col], axis=1, inplace=True)
 
         return(task)
 
+    def process_task_complexity(self, data) -> pd.DataFrame:
+        complexity_dummies = pd.get_dummies(data[self.complexity_col])
+        return complexity_dummies
+
     def process_composition_data(self, data) -> pd.DataFrame:
         composition = data[[col for col in data.columns if any(keyword in col for keyword in self.composition_vars)]]
         return(composition)
+
+    def process_team_size_data(self, data) -> pd.DataFrame:
+        return data[self.team_size_varname]
 
     def process_communication_data(self, data) -> pd.DataFrame:  
         # assumes all features that are not dv's or compositions variables are communication variables
@@ -150,10 +172,9 @@ class HorseRaceDataSet:
         dvs = data[self.dvs + [self.task_name_col]]
 
         # standardize_dv by the task
+        # TODO --- there's lots of Na's in this data (div 0 error?)
         if(self.standardize_dv):
             dvs = self.standardize_df_by_group(dvs, grouper = self.task_name_col)
-
-        # TODO --- there's lots of Na's in this data (div 0 error?)
 
         return(dvs)
 
@@ -177,6 +198,7 @@ class HorseRaceDataSet:
         assert set(self.task_vars)<=set(self.data.columns), "The desired task variables are not found in the data."
         assert set(self.task_name_mapping.keys()) <= set(self.data[self.task_name_col].drop_duplicates()), "The desired task names in the dictionary are not found in the data."
         assert self.total_messages_varname in self.data.columns, "There is no variable for the total number of messages in the dataset; this variable is required for processing the data."
+        assert self.team_size_varname in self.data.columns, "There is no variable for the total number of members in the team; this variable is required for processing the data."
 
         print("Passed assertions, cleaning features now ...")
 
@@ -193,9 +215,17 @@ class HorseRaceDataSet:
         self.task_features = self.process_task_data(data)
         print("Completed Task Features...")
 
+        # Task complexity data
+        self.task_complexity_features = self.process_task_complexity(data)
+        print("Completed Task Complexity Features...")
+
         # Composition data
         self.composition_features = self.process_composition_data(data)
         print("Completed Composition Features...")
+
+        # Team Size data
+        self.size_feature = self.process_team_size_data(data)
+        print("Completed Team Size Features...")
 
         # Conversation data
         self.conversation_features = self.process_communication_data(data)
