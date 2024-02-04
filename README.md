@@ -5,23 +5,28 @@ The aim of this repository is to organize the data cleaning and model building c
 The blueprint for this repository is as follows:
 
 ```
-├── datasets/ (This is where we need to move the data cleaning.)
+├── tpm-data/ (A submodule where data associated with the Team Process Mapping project live.)
+│   ├── cleaned_data/ (The folder where datasets that have been cleaned into a format appropriate for team processing mapping reside)
+│   ├── data_cleaning/ (Scripts for cleaning the data.)
+│   ├── data_cleaning_dev/ (.ipynb files for cleaning the data.)
+│   ├── raw_data/ (Uncleaned, unprocessed data.)
+│   ├── vector_data/ (A folder where processed, tokenized versions of the datasets reside; e.g., SBERT vectors.) 
 ├── features/
 │   ├── team-process-map/ (This is a git submodule that defines the communication features.)
 │   ├── task-mapping/ (This is a git submodule that defines the task features.)
-│   ├── team_composition.py (This is where we will clean up team composition features; most of these come in the original data cleaning.)
-├── data.py **Class**: defines a Dataset() class that organizes data for modeling in a structured format
-├── models/
-│   ├── model_instance.py **Class**: defines a Model() object. Starting implementations: LASSO, Ridge, Random Forest ... etc. (all the basics that we had before)
-├── experiment_configs/  (.yaml files where we define the kinds of experiments we want to run)
+├── data.py **Class**: defines a HorseRaceDataset() class that organizes data for modeling in a structured format
+├── model.py **Class**: defines a HorseRaceModel() object. Starting implementations: LASSO, Ridge, Random Forest ... etc. (all the basics that we had before)
+├── data_config/  (.yaml files where the user defines requirements for cleaning the data)
+├── model_config/  (.yaml files where the user defines requirements for building models)
 ├── data_cache/ (Where we save Dataset() objects as .pkl files)
 ├── model_cache/ (Where we save Model() objects as .pkl files)
+├── clean_data.py **Model Driver**: The driver for cleaning the data and creating a HorseRaceDataSet instance.
+├── run_model.py **Model Driver**: The driver for running and building models, creating a HorseRaceModel instance.
 ├── viz/
 │   ├── visualization_tools.py (Saves all the previous tools we had for visualization)
 │   ├── viz.ipynb (Sandbox for exploring data viz)
 ├── sandbox.ipynb (Any other fun explorations to do in a notebook)
-├── run_model.py **Main Driver**: This is what we use to actually run everything else; the equivalent in the featurizer is `featurize.py`, which simply calls the other classes.
 └── .gitignore
 ```
 
-The vision is to encapsulate the data cleaning (`data.py`) and modeling (`models`) capacities, so that different iterations of models, feature selection, etc. can be efficiently tested and iterated upon. The repository also aims to ensure clean, reproducible code so that the project can be open-sourced (and replicated!) upon completion.
+The vision is to encapsulate the data cleaning (`data.py`) and modeling (`model.py`) capacities, so that different iterations of models, feature selection, etc. can be efficiently tested and iterated upon. The repository also aims to ensure clean, reproducible code so that the project can be open-sourced (and replicated!) upon completion.
