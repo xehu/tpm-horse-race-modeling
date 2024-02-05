@@ -4,6 +4,7 @@ data_config_schema = {
         "raw_round_data_path": str,
         "raw_stage_data_path": str,
         "raw_user_data_path": str,
+        "vector_directory": str,
         "output_cleaned": str,
         "output_chat": str,
         "output_user": str,
@@ -20,7 +21,8 @@ data_config_schema = {
     "cleaning_options": {
         "min_num_chats": int,
         "num_conversation_components": None,
-        "fillna_options": "mean",
+        "handle_na_values": "mean",
+        "na_fill_value": None, 
         "standardize_dv": True,
         "use_mean_for_roundId": False,
         "tiny": False

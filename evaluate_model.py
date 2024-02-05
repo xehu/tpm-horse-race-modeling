@@ -44,9 +44,11 @@ if __name__ == "__main__":
 	# Parse command-line arguments
 	parser = argparse.ArgumentParser(description="This program takes in a config file for the TPM Horse Race project. For a specified HorseRaceDataSet and model, fits and evaluates the model with optimal parameters.")
 	parser.add_argument('--evaluate', nargs=1, help='Run the model evaluation sequence according to [config]. You need to pass in 1 argument, [config], which should be a path pointing to the config file.')
+	parser.add_argument('--multieval', nargs=1, help='Run the model evaluation sequence according to each config file within a directory, passed in as the argument. You need to pass in 1 argument, [directory], which should be a path pointing to the directory containing all config files.')
 	args = parser.parse_args()
 
 	if args.evaluate:
+		# Evaluate just one config file
 		config_file_path = args.evaluate[0]
 		model_paths, model_options, optimization_options = read_and_validate_config(model_eval_config_schema, config_file_path)
 
@@ -64,6 +66,10 @@ if __name__ == "__main__":
 			na_fill_value = model_options["na_fill_value"]
 			)
 		model_evaluator.evaluate_optimal_model()
+	if args.multieval:
+		# Evaluate multiple config files at once
+		
+
 
 	else:
-		print("No arguments provided. Usage: --evaluate [config]")
+		print("No arguments provided. Usage: --evaluate [config] or --multieval [directory with configs]")

@@ -1,0 +1,32 @@
+data_paths:
+  raw_round_data_path: raw_data/multi_task_data_with_dv_by_rounds.csv
+  raw_stage_data_path: raw_data/multi_task_stages.csv
+  raw_user_data_path: raw_data/results_by_user_detailed.csv
+  vector_directory: ./tpm-data/vector_data/
+  output_cleaned: ./tpm-data/cleaned_data/multi_task_roundId_cumulative.csv
+  output_chat: ./data_cache/raw_output/chat/multi_task_roundId_cumulative_chat.csv
+  output_user: ./data_cache/raw_output/user/multi_task_roundId_cumulative_user.csv
+  output_conv: ./data_cache/raw_output/conv/multi_task_roundId_cumulative_conv.csv
+  output_pkl: ./data_cache/multi_task_roundId_cumulative.pkl
+
+conv_featurizer_options:
+  analyze_first_pct: 
+    - 1.0
+  turns: False
+  conversation_id: roundId
+  cumulative_grouping: True
+  within_task: False
+
+cleaning_options:
+  min_num_chats: 0
+  num_conversation_components: 5
+  handle_na_values: "mean"
+  standardize_dv: True
+  use_mean_for_roundId: False
+  tiny: False
+
+format_options:
+  task_name_index: 0
+  complexity_name_index: 1
+  total_messages_varname: sum_num_messages
+  team_size_varname: playerCount

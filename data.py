@@ -25,6 +25,8 @@ Key attributes of an instance of this class:
 # 3rd Party Imports
 import pandas as pd
 import numpy as np
+from sklearn.decomposition import PCA
+from sklearn.impute import SimpleImputer
 
 class HorseRaceDataSet:
     def __init__(
@@ -36,7 +38,8 @@ class HorseRaceDataSet:
         complexity_name_index = 1,
         total_messages_varname = "sum_num_messages",
         team_size_varname = "playerCount",
-        fillna_options = "mean", 
+        handle_na_values = "mean",
+        na_fill_value = None,
         standardize_dv = True,
         dvs = None,
         composition_vars = None,
@@ -56,7 +59,9 @@ class HorseRaceDataSet:
         @complexity_name_index (Defaults to 1): in the parameter `task_vars,` the index of the item that contains the complexity
         @total_messages_varname (Defaults to "sum_num_messages"): The name of the variable that tracks the number of messages per conversation
         @team_size_varname (Defaults to "playerCount"): The name of the variable that tracks the number of members/players per team
-        @fillna_options (defaults to "mean"): uses the mean of a column to fill NA values.
+        @handle_na_values (Defaults to "mean"): determines how to handle missing values; accepted values are {"drop", "mean", "median", "most_frequent", or "constant"}. 
+            If "constant," must also provide a fill value (`na_fill_value`)
+        @na_fill_value: the value with which the user specifies filling NA values.
         @standardize_dv (defaults to True): standardize the dependent variable(s)
 
         If the following optional parameters are None, they are set to values specific to the multi-task dataset, defined later in the constructor.
@@ -78,7 +83,18 @@ class HorseRaceDataSet:
         self.complexity_name_index = complexity_name_index
         self.total_messages_varname = total_messages_varname
         self.team_size_varname = team_size_varname
-        self.fillna_options = fillna_options
+
+        # Assert that the na handling options are valid
+        assert handle_na_values in {"drop", "mean", "median", "most_frequent", "constant"}, "Invalid specification of handling NA values."
+        if handle_na_values == "drop":
+            self.drop_na = True
+            self.imputation_option = None
+        else:
+            self.drop_na = False
+            self.imputation_option = handle_na_values
+
+        self.na_fill_value = na_fill_value
+
         self.standardize_dv = standardize_dv
 
         # Default DV's, Composition Variables, and Task Name Map (this is for the multi-task dataset)
@@ -115,6 +131,13 @@ class HorseRaceDataSet:
         # set the column containing the task name
         self.task_name_col = self.task_vars[self.task_name_index]
         self.complexity_col = self.task_vars[self.complexity_name_index]
+
+        # remove the "message" column if present
+        if "message" in self.data.columns:
+            self.data.drop(["message"], axis=1, inplace=True)
+
+        # handle na's according to user specifications
+        self.handle_na_values()
 
         # preprocess data
         self.read_and_preprocess_data()
@@ -185,6 +208,29 @@ class HorseRaceDataSet:
         print(np.sum(pca.explained_variance_ratio_))
         return (pd.DataFrame(pca_result, columns=[f'PC{i+1}' for i in range(pca_result.shape[1])]))
 
+    """
+    Handle NA values according to the user's specifications.
+    """
+    def handle_na_values(self) -> None:
+        numeric_columns = self.data.select_dtypes(include='number').columns
+        non_numeric_columns = self.data.columns.difference(numeric_columns)
+
+        # Handle NA values for numeric columns
+        numeric_data = self.data[numeric_columns].to_numpy()
+        if self.drop_na:
+            numeric_data = numeric_data.dropna()
+        else:  # apply an imputation option
+            if self.imputation_option != "constant":
+                imputer = SimpleImputer(strategy=self.imputation_option)
+                numeric_data = imputer.fit_transform(numeric_data)
+            else:
+                assert self.na_fill_value is not None, "You cannot specify a 'constant' NA fill option without specifying an `na_fill_value.`"
+                imputer = SimpleImputer(strategy=self.imputation_option, fill_value=self.na_fill_value)
+                numeric_data = imputer.fit_transform(numeric_data)
+
+        # Merge numeric and non-numeric data back together
+        self.data = pd.concat([pd.DataFrame(numeric_data, columns=numeric_columns), self.data[non_numeric_columns]], axis=1)
+
     def read_and_preprocess_data(self) -> None:
         """
         This function processes the data from self.data into three sets
@@ -192,10 +238,10 @@ class HorseRaceDataSet:
         assert set(self.dvs)<= set(list(self.data.columns)), "The desired DV's are not found in the data."
         composition_cols = [] # Composition columns are summarized by mean, std
         for varname in self.composition_vars:
-            composition_cols.append(varname + "_nanmean")
-            composition_cols.append(varname + "_nanstd")
-        assert set(composition_cols) <= set(self.data.columns), "The desired composition variables are not found in the data."
-        assert set(self.task_vars)<=set(self.data.columns), "The desired task variables are not found in the data."
+            composition_cols.append(varname + "_mean")
+            composition_cols.append(varname + "_std")
+        assert set(composition_cols) <= set(self.data.columns), "The following desired composition variables are not found in the data: " + str(set(composition_cols).difference(set(self.data.columns)))
+        assert set(self.task_vars)<=set(self.data.columns), "The following desired task variables are not found in the data: " + str(set(task_vars).difference(set(self.data.columns)))
         assert set(self.task_name_mapping.keys()) <= set(self.data[self.task_name_col].drop_duplicates()), "The desired task names in the dictionary are not found in the data."
         assert self.total_messages_varname in self.data.columns, "There is no variable for the total number of messages in the dataset; this variable is required for processing the data."
         assert self.team_size_varname in self.data.columns, "There is no variable for the total number of members in the team; this variable is required for processing the data."
@@ -204,9 +250,8 @@ class HorseRaceDataSet:
 
         data = self.data
 
-        if(self.fillna_options == 'mean'):
-            # Fill NA with mean -- TODO: add other options!
-            data.fillna(data.mean(numeric_only=True), inplace=True)
+        # drop invariant columns in data
+        data = self.drop_invariant_columns(data)
 
         # Filter this down to teams that have at least min_num of chats
         data = data[data[self.total_messages_varname] >= self.min_num_chats]
@@ -236,9 +281,3 @@ class HorseRaceDataSet:
         # DVs
         self.dvs = self.process_dv_data(data)
         print("Completed DV's .... All done!")
-
-        # drop invariant features -- these don't matter in any downstream model
-        self.task_features = self.drop_invariant_columns(self.task_features)
-        self.composition_features = self.drop_invariant_columns(self.composition_features)
-        self.conversation_features = self.drop_invariant_columns(self.conversation_features)
-        self.dvs = self.drop_invariant_columns(self.dvs)
