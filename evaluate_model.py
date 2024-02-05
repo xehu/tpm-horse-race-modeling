@@ -7,7 +7,7 @@ This file is the main driver of the model evaluation pipeline.
 
 import pandas as pd
 import numpy as np
-import os
+import os, glob
 import sys
 from model_evaluation import HorseRaceModelEvaluator
 from importlib import import_module
@@ -68,8 +68,24 @@ if __name__ == "__main__":
 		model_evaluator.evaluate_optimal_model()
 	if args.multieval:
 		# Evaluate multiple config files at once
-		
+		path = args.multieval[0]
+		for config_file in glob.glob(os.path.join(path, '*.yaml')):
+			model_paths, model_options, optimization_options = read_and_validate_config(model_eval_config_schema, config_file)
 
+			# Run the Model Evaluation
+			model_evaluator = HorseRaceModelEvaluator(
+				HorseRaceDataSet_path = model_paths["HorseRaceDataSet_path"],
+				X_cat_names = model_options["X_cat_names"],
+				y_name = model_options["y_name"],
+				model_type = model_options["model_type"],
+				optimization_output_path = model_paths["optimization_output_path"],
+				n_iterations = optimization_options["n_iterations"],
+				total_trials = optimization_options["total_trials"],
+				inversely_weight_tasks = model_options["inversely_weight_tasks"],
+				handle_na_values = model_options["handle_na_values"],
+				na_fill_value = model_options["na_fill_value"]
+				)
+			model_evaluator.evaluate_optimal_model()
 
 	else:
 		print("No arguments provided. Usage: --evaluate [config] or --multieval [directory with configs]")

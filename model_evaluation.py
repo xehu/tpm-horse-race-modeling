@@ -30,6 +30,7 @@ import ast
 from tqdm import tqdm
 from copy import deepcopy
 import itertools
+import os
 
 from ax import optimize
 from ax.plot.contour import plot_contour
@@ -203,6 +204,7 @@ class HorseRaceModelEvaluator:
 		return ax_output
 
 	def evaluate_optimal_model(self):
+		os.makedirs(os.path.dirname(self.optimization_output_path), exist_ok=True)
 		output = open(self.optimization_output_path, "w")
 
 		for iteration in range(self.n_iterations):
