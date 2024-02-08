@@ -12,17 +12,18 @@ import sys
 from model_evaluation import HorseRaceModelEvaluator
 from importlib import import_module
 import yaml
-from model_eval_config.model_eval_config_schema import model_eval_config_schema
+from model_eval_config.model_eval_config_schema import model_eval_config_schema as CONFIG_SCHEMA
 import argparse
 import pickle
+import concurrent.futures
 clean_multi_task_data = import_module('tpm-data.data_cleaning.clean_multi_task_data').clean_multi_task_data
 
-def read_and_validate_config(model_eval_config_schema, user_provided_config):
+def read_and_validate_config(user_provided_config):
 	with open(user_provided_config, 'r') as file:
 		config_data = yaml.safe_load(file)
 
 	# Validate the yaml schema
-	for section, schema in model_eval_config_schema.items():
+	for section, schema in CONFIG_SCHEMA.items():
 		if section not in config_data:
 			config_data[section] = {}  # Create empty section if not provided
 
@@ -37,6 +38,23 @@ def read_and_validate_config(model_eval_config_schema, user_provided_config):
 
 	return model_paths, model_options, optimization_options
 
+def evaluate_model(config_file):
+		model_paths, model_options, optimization_options = read_and_validate_config(config_file)
+
+		# Run the Model Evaluation
+		model_evaluator = HorseRaceModelEvaluator(
+			HorseRaceDataSet_path=model_paths["HorseRaceDataSet_path"],
+			X_cat_names=model_options["X_cat_names"],
+			y_name=model_options["y_name"],
+			model_type=model_options["model_type"],
+			optimization_output_path=model_paths["optimization_output_path"],
+			n_iterations=optimization_options["n_iterations"],
+			total_trials=optimization_options["total_trials"],
+			inversely_weight_tasks=model_options["inversely_weight_tasks"],
+			handle_na_values=model_options["handle_na_values"],
+			na_fill_value=model_options["na_fill_value"]
+		)
+		model_evaluator.evaluate_optimal_model()
 
 # Main Function
 if __name__ == "__main__":
@@ -50,42 +68,15 @@ if __name__ == "__main__":
 	if args.evaluate:
 		# Evaluate just one config file
 		config_file_path = args.evaluate[0]
-		model_paths, model_options, optimization_options = read_and_validate_config(model_eval_config_schema, config_file_path)
-
-		# Run the Model Evaluation
-		model_evaluator = HorseRaceModelEvaluator(
-			HorseRaceDataSet_path = model_paths["HorseRaceDataSet_path"],
-			X_cat_names = model_options["X_cat_names"],
-			y_name = model_options["y_name"],
-			model_type = model_options["model_type"],
-			optimization_output_path = model_paths["optimization_output_path"],
-			n_iterations = optimization_options["n_iterations"],
-			total_trials = optimization_options["total_trials"],
-			inversely_weight_tasks = model_options["inversely_weight_tasks"],
-			handle_na_values = model_options["handle_na_values"],
-			na_fill_value = model_options["na_fill_value"]
-			)
-		model_evaluator.evaluate_optimal_model()
-	if args.multieval:
+		evaluate_model(config_file_path)
+	
+	elif args.multieval:
 		# Evaluate multiple config files at once
 		path = args.multieval[0]
-		for config_file in glob.glob(os.path.join(path, '*.yaml')):
-			model_paths, model_options, optimization_options = read_and_validate_config(model_eval_config_schema, config_file)
+		config_files = glob.glob(os.path.join(path, '*.yaml'))
 
-			# Run the Model Evaluation
-			model_evaluator = HorseRaceModelEvaluator(
-				HorseRaceDataSet_path = model_paths["HorseRaceDataSet_path"],
-				X_cat_names = model_options["X_cat_names"],
-				y_name = model_options["y_name"],
-				model_type = model_options["model_type"],
-				optimization_output_path = model_paths["optimization_output_path"],
-				n_iterations = optimization_options["n_iterations"],
-				total_trials = optimization_options["total_trials"],
-				inversely_weight_tasks = model_options["inversely_weight_tasks"],
-				handle_na_values = model_options["handle_na_values"],
-				na_fill_value = model_options["na_fill_value"]
-				)
-			model_evaluator.evaluate_optimal_model()
+		with concurrent.futures.ThreadPoolExecutor() as executor:
+			futures = [executor.submit(evaluate_model, config_file) for config_file in config_files]
 
 	else:
 		print("No arguments provided. Usage: --evaluate [config] or --multieval [directory with configs]")
