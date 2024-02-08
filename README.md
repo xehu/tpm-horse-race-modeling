@@ -48,5 +48,9 @@ python3 clean_data.py --clean [path to config file]
 ```
 python3 evaluate_model.py --evaluate [path to config file]
 ```
+Alternatively, the evaluator accepts a path to multiple config files and runs them in tandem:
+```
+python3 evaluate_model.py --multieval [pathg to a directory with multiple config files inside]
+```
 
 The repository also aims to ensure clean, reproducible code so that the project can be open-sourced (and replicated!) upon completion.
