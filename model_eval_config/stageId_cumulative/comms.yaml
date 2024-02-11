@@ -1,6 +1,7 @@
 model_paths:
   HorseRaceDataSet_path: ./data_cache/multi_task_stageId_cumulative.pkl
-  optimization_output_path: ./model_eval_cache/stageId_cumulative/comms_features_elasticnet
+  optimization_output_path: ./model_eval_cache/optimal_params/stageId_cumulative/
+  evaluation_output_path: ./model_eval_cache/evaluation_outputs/stageId_cumulative/
 
 model_options:
   X_cat_names: ["comms"]

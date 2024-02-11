@@ -1,6 +1,7 @@
 model_paths:
   HorseRaceDataSet_path: ./data_cache/multi_task_roundId_task.pkl
-  optimization_output_path: ./model_eval_cache/roundId_task/size_features_elasticnet
+  optimization_output_path: ./model_eval_cache/optimal_params/roundId_task/
+  evaluation_output_path: ./model_eval_cache/evaluation_outputs/roundId_task/
 
 model_options:
   X_cat_names: ["size"]

@@ -3,6 +3,7 @@ model_eval_config_schema = {
     "model_paths": {
         "HorseRaceDataSet_path": str,
         "optimization_output_path": str,
+        "evaluation_output_path": str,
     },
     "model_options":{
         "X_cat_names": list, 
@@ -14,6 +15,7 @@ model_eval_config_schema = {
     },
     "optimization_options": {
         "n_iterations": int,
-        "total_trials": int
+        "total_trials": int,
+        "output_file_mode": "a"
     }
 }

@@ -21,7 +21,7 @@ cleaning_options:
   min_num_chats: 0
   num_conversation_components: 5
   handle_na_values: "mean"
-  standardize_dv: True
+  standardize_dv: False
   use_mean_for_roundId: False
   tiny: False
 

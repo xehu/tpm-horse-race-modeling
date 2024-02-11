@@ -7,15 +7,25 @@ NOTE: in order to add support for any other model, we simply need to add a new e
 """
 from sklearn.linear_model import ElasticNet
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.linear_model import Lasso
 
 model_dict = {"RandomForestRegressor":{"model":RandomForestRegressor,
-					"params":[{"name":"n_estimators", "type":"range", "bounds":[2,256]},
+					"params":[{"name":"n_estimators", "type":"range", "bounds":[2,200]},
 							{"name":"max_depth", "type":"range", "bounds":[1,10]},
-							{"name":"min_samples_leaf", "type":"range", "bounds":[1,10]}]},
+							{"name":"min_samples_leaf", "type":"range", "bounds":[1,5]}]},
 			   "ElasticNet":{ "model": ElasticNet,
 					"params":[{"name": "alpha", "type": "range", "bounds":[0.0,1.0]},
 							{"name": "l1_ratio", "type": "range", "bounds":[0.0,1.0]},
 							{"name": "max_iter", "type": "range", "bounds":[200, 2000]},
+							{"name": "selection", "type": "choice", "values":["cyclic", "random"]}
+						]},
+				"LASSOEmpirical":{ "model": Lasso,
+					"params":[ {"name": "alpha", "type": "range", "bounds":[0.0001,0.1]} # previous empirical experiments have found better results with very small alphas.
+				]},
+				"ElasticNetEmpirical":{ "model": ElasticNet,
+					"params":[{"name": "alpha", "type": "range", "bounds":[0.0001,0.1]}, # using previous empirical bounds
+							{"name": "l1_ratio", "type": "range", "bounds":[0.2,1.0]},
+							{"name": "max_iter", "type": "range", "bounds":[200, 1000]},
 							{"name": "selection", "type": "choice", "values":["cyclic", "random"]}
 						]}
 			}

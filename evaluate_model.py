@@ -9,6 +9,7 @@ import pandas as pd
 import numpy as np
 import os, glob
 import sys
+from model_optimization import HorseRaceOptimizedModel
 from model_evaluation import HorseRaceModelEvaluator
 from importlib import import_module
 import yaml
@@ -38,23 +39,48 @@ def read_and_validate_config(user_provided_config):
 
 	return model_paths, model_options, optimization_options
 
-def evaluate_model(config_file):
-		model_paths, model_options, optimization_options = read_and_validate_config(config_file)
+def get_optimal_model(model_paths, model_options, optimization_options, optimization_output_filepath):
 
-		# Run the Model Evaluation
-		model_evaluator = HorseRaceModelEvaluator(
-			HorseRaceDataSet_path=model_paths["HorseRaceDataSet_path"],
-			X_cat_names=model_options["X_cat_names"],
-			y_name=model_options["y_name"],
-			model_type=model_options["model_type"],
-			optimization_output_path=model_paths["optimization_output_path"],
-			n_iterations=optimization_options["n_iterations"],
-			total_trials=optimization_options["total_trials"],
-			inversely_weight_tasks=model_options["inversely_weight_tasks"],
-			handle_na_values=model_options["handle_na_values"],
-			na_fill_value=model_options["na_fill_value"]
-		)
-		model_evaluator.evaluate_optimal_model()
+	print("Getting optimal model params...")
+	# Run the Model Evaluation
+	optimized_model = HorseRaceOptimizedModel(
+		HorseRaceDataSet_path=model_paths["HorseRaceDataSet_path"],
+		X_cat_names=model_options["X_cat_names"],
+		y_name=model_options["y_name"],
+		model_type=model_options["model_type"],
+		total_trials=optimization_options["total_trials"],
+		inversely_weight_tasks=model_options["inversely_weight_tasks"],
+		handle_na_values=model_options["handle_na_values"],
+		na_fill_value=model_options["na_fill_value"]		
+	)
+
+	# Save it as a pickle
+	os.makedirs(os.path.dirname(optimization_output_filepath), exist_ok=True) # make the path if it doesn't exist
+	with open(optimization_output_filepath, "wb") as pickle_file:
+		pickle.dump(optimized_model, pickle_file)
+
+def evaluate_model(config_file):
+	
+	model_paths, model_options, optimization_options = read_and_validate_config(config_file)
+
+	# If optimal model parameters do not yet exist, generate them.
+	# automatically name the file in the output directory, with the categories used, the model type, dv, and total trials
+	optimization_output_filepath = model_paths["optimization_output_path"] + "/" + '_'.join(model_options["X_cat_names"]) + '_' + model_options["model_type"] + "_" + model_options["y_name"] + "_" + str(optimization_options["total_trials"])
+
+	print("Checking for optimal model params...")
+	if not os.path.isfile(optimization_output_filepath):
+		get_optimal_model(model_paths, model_options, optimization_options, optimization_output_filepath)
+
+	# Run the Model Evaluation based on the optimal parameters that we found.
+	print("Evaluating model...")
+	model_evaluator = HorseRaceModelEvaluator(
+		HorseRaceOptimizedModel_path = optimization_output_filepath,
+		n_iterations=optimization_options["n_iterations"],
+		output_file_path = model_paths["evaluation_output_path"],
+		output_file_mode =optimization_options["output_file_mode"]
+	)
+	model_evaluator.evaluate_optimal_model()
+	print("All Done!")
 
 # Main Function
 if __name__ == "__main__":
@@ -75,8 +101,8 @@ if __name__ == "__main__":
 		path = args.multieval[0]
 		config_files = glob.glob(os.path.join(path, '*.yaml'))
 
-		with concurrent.futures.ThreadPoolExecutor() as executor:
+		with concurrent.futures.ThreadPoolExecutor(max_workers=None) as executor:
 			futures = [executor.submit(evaluate_model, config_file) for config_file in config_files]
-
+			
 	else:
 		print("No arguments provided. Usage: --evaluate [config] or --multieval [directory with configs]")

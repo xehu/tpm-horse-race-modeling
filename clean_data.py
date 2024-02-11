@@ -95,6 +95,7 @@ if __name__ == "__main__":
 				handle_na_values = cleaning_options["handle_na_values"],
 				na_fill_value = cleaning_options["na_fill_value"],
 				standardize_dv = cleaning_options["standardize_dv"],
+				standardize_iv = cleaning_options["standardize_iv"],
 				task_name_index = format_options["task_name_index"],
 				complexity_name_index = format_options["complexity_name_index"],
 				total_messages_varname = format_options["total_messages_varname"],

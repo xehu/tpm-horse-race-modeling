@@ -41,6 +41,7 @@ class HorseRaceDataSet:
         handle_na_values = "mean",
         na_fill_value = None,
         standardize_dv = True,
+        standardize_iv = True,
         dvs = None,
         composition_vars = None,
         task_vars = None,
@@ -63,7 +64,15 @@ class HorseRaceDataSet:
             If "constant," must also provide a fill value (`na_fill_value`)
         @na_fill_value: the value with which the user specifies filling NA values.
         @standardize_dv (defaults to True): standardize the dependent variable(s)
-
+        @standardize_iv (defaults to True): standardize the independent variable(s)
+            IV's that are candidates for being standardized are:
+                - Conversation Features
+                - Task Features
+                - Composition Features
+            IV's that are not currently candidates for being standardized are:
+                - Any binary variables
+                - Team size (there are only 2 options, 3 and 6, in the multi-task data)
+                - Task Complexity (this is one-hot encoded)
         If the following optional parameters are None, they are set to values specific to the multi-task dataset, defined later in the constructor.
         @dvs (Defaults to None): custom list of dependent variables of interest
         @composition_vars (Defaults to None): custom list of composition variables of interest
@@ -96,6 +105,7 @@ class HorseRaceDataSet:
         self.na_fill_value = na_fill_value
 
         self.standardize_dv = standardize_dv
+        self.standardize_iv = standardize_iv
 
         # Default DV's, Composition Variables, and Task Name Map (this is for the multi-task dataset)
         dvs_default = ["score","speed","efficiency","raw_duration_min","default_duration_min"]
@@ -189,13 +199,18 @@ class HorseRaceDataSet:
         return(conversation)
 
     def standardize_df_by_group(self, df, grouper) -> pd.DataFrame:
-       return(df.groupby(grouper).transform(lambda x: (x - x.mean()) / x.std()))
+        non_binary_cols = df.columns[df.nunique() > 2]  # Identify non-binary columns; binary columns don't standardize well.
+        if grouper is not None:
+            grouped = df.groupby(grouper)
+            df[non_binary_cols] = grouped[non_binary_cols].transform(lambda x: (x - x.mean()) / x.std())
+        else:
+            df[non_binary_cols] = df[non_binary_cols].transform(lambda x: (x - x.mean()) / x.std())
+
+        return df
 
     def process_dv_data(self, data) ->  pd.DataFrame:
         dvs = data[self.dvs + [self.task_name_col]]
-
         # standardize_dv by the task
-        # TODO --- there's lots of Na's in this data (div 0 error?)
         if(self.standardize_dv):
             dvs = self.standardize_df_by_group(dvs, grouper = self.task_name_col)
 
@@ -258,24 +273,35 @@ class HorseRaceDataSet:
 
         # Task data
         self.task_features = self.process_task_data(data)
+        if(self.standardize_iv):
+            self.task_features = self.standardize_df_by_group(self.task_features, grouper = None)
+
         print("Completed Task Features...")
 
         # Task complexity data
         self.task_complexity_features = self.process_task_complexity(data)
+
         print("Completed Task Complexity Features...")
 
         # Composition data
         self.composition_features = self.process_composition_data(data)
+        if(self.standardize_iv):
+            self.composition_features = self.standardize_df_by_group(self.composition_features, grouper = None)
+         
         print("Completed Composition Features...")
 
         # Team Size data
         self.size_feature = self.process_team_size_data(data)
+
         print("Completed Team Size Features...")
 
         # Conversation data
         self.conversation_features = self.process_communication_data(data)
         if(self.num_conversation_components is not None):
             self.conversation_features = self.get_first_n_pcs(self.conversation_features, self.num_conversation_components)
+        if(self.standardize_iv):
+            self.conversation_features = self.standardize_df_by_group(self.conversation_features, grouper = None)
+
         print("Completed Conversation Features...")
 
         # DVs
