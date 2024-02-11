@@ -1,8 +1,8 @@
 # tpm-horse-race-modeling
 
-The aim of this repository is to organize the data cleaning and model building code for the subproject of #team-process-map that focuses on studying the relative influence of different facets of teamwork. Our key research question is to understand how different aspects of teamwork (the team composition, team size, task features, communication features, etc.) influence a team's eventual performance --- how might we quantify what really "matters" in teams, and build theories towards understanding how the different ingredients of a team work together?
+This repository organizes the data cleaning and model building code for the "Team factor horse race" project: a research project studying the relative influence of different facets of teamwork. Our key aim is to understand how different aspects of teamwork (the team composition, team size, task features, communication features, etc.) influence a team's eventual performance --- how might we quantify what really "matters" in teams, and build theories towards understanding how the different ingredients of a team work together?
 
-The blueprint for this repository is as follows:
+The structure of this repository is as follows:
 
 ```
 ├── tpm-data/ (A submodule where data associated with the Team Process Mapping project live.)
@@ -15,7 +15,8 @@ The blueprint for this repository is as follows:
 │   ├── team-process-map/ (This is a git submodule that defines the communication features.)
 │   ├── task-mapping/ (This is a git submodule that defines the task features.)
 ├── data.py **Class**: defines a HorseRaceDataset() class that organizes data for modeling in a structured format
-├── model_evaluation.py **Class**: defines a HorseRaceModel() object. Starting implementations: LASSO, Ridge, Random Forest ... etc. (all the basics that we had before)
+├── model_optimization.py **Class**: defines a HorseRaceOptimizedModel() object, which takes in a HorseRaceDataset() and uses the Ax Bayesian Optimization framework to identify the best possible parameters.
+├── model_evaluation.py **Class**: defines a HorseRaceModelEvaluator() object, which takes in a HorseRaceOptimizedModel() and performs multiple bootstrapped evaluations of the model on the data.
 ├── data_config/  (.yaml files where the user defines requirements for cleaning the data)
 ├── model_eval_config/  (.yaml files where the user defines requirements for running and evaluating models)
 ├── data_cache/ (Where we save HorseRaceDataset() objects as .pkl files)
@@ -30,7 +31,7 @@ The blueprint for this repository is as follows:
 └── .gitignore
 ```
 
-By encapsulating the data cleaning (`data.py`) and modeling (`model_evaluation.py`) capacities, different iterations of models, feature selection, etc. can be efficiently tested and iterated upon. 
+By encapsulating the data cleaning (`data.py`), model optimization (`model_optimzation.py`), and model evaluation (`model_evaluation.py`) capacities, different iterations of models, feature selection, etc. can be efficiently tested and iterated upon. 
 
 ## Cleaning the dataset and generating a HorseRaceDataSet
 To clean a dataset, follow these steps:
