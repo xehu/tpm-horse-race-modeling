@@ -12,4 +12,4 @@ model_options:
 
 optimization_options:
   n_iterations: 10
-  total_trials: 25
+  total_trials: 10

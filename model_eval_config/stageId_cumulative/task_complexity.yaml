@@ -6,10 +6,10 @@ model_paths:
 model_options:
   X_cat_names: ["task_complexity"]
   y_name: "score"
-  model_type: "ElasticNet"
+  model_type: "ElasticNetEmpirical"
   inversely_weight_tasks: True
   handle_na_values: "mean"
 
 optimization_options:
-  n_iterations: 100
+  n_iterations: 10
   total_trials: 10
