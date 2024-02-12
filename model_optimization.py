@@ -35,6 +35,8 @@ from ax.plot.contour import plot_contour
 from ax.utils.notebook.plotting import init_notebook_plotting, render
 from ax.plot.trace import optimization_trace_single_method
 import json
+import torch
+mps_device = torch.device("mps")
 
 # Imports from my own library
 from model_eval_setup.model_dict import model_dict
