@@ -141,7 +141,7 @@ class HorseRaceModelEvaluator:
 		for iteration in range(self.n_iterations):
 			sample_size = len(self.HorseRaceOptimizedModel.X.index)
 			data = pd.concat([self.HorseRaceOptimizedModel.X.reset_index(drop=True), self.HorseRaceOptimizedModel.y.reset_index(drop=True), self.HorseRaceOptimizedModel.HorseRaceData.task_name.reset_index(drop=True)], axis = 1)
-			data_resampled = data.sample(n = sample_size, random_state = iteration).reset_index(drop=True)
+			data_resampled = data.sample(n = sample_size, random_state = iteration, replace = True).reset_index(drop=True)
 
 			# assert that the resampling worked
 			assert data.shape == data_resampled.shape, "Resampled dataframe does not have the correct shape. Stopping..."
