@@ -11,5 +11,5 @@ model_options:
   handle_na_values: "mean"
 
 optimization_options:
-  n_iterations: 10
-  total_trials: 10
+  n_iterations: 100
+  total_trials: 25
