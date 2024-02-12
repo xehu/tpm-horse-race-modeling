@@ -142,6 +142,11 @@ class HorseRaceModelEvaluator:
 			sample_size = len(self.HorseRaceOptimizedModel.X.index)
 			data = pd.concat([self.HorseRaceOptimizedModel.X.reset_index(drop=True), self.HorseRaceOptimizedModel.y.reset_index(drop=True), self.HorseRaceOptimizedModel.HorseRaceData.task_name.reset_index(drop=True)], axis = 1)
 			data_resampled = data.sample(n = sample_size, random_state = iteration).reset_index(drop=True)
+
+			# assert that the resampling worked
+			assert data.shape == data_resampled.shape, "Resampled dataframe does not have the correct shape. Stopping..."
+			assert not data_resampled.equals(data), "Resampled data is exactly the same as data. Stopping ..."
+			
 			X_resampled = data_resampled[self.HorseRaceOptimizedModel.X.columns]
 			y_resampled = data_resampled[self.HorseRaceOptimizedModel.y_name]
 			task_names_resampled = data_resampled[self.HorseRaceOptimizedModel.HorseRaceData.task_name.name]

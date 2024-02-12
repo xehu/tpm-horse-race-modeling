@@ -6,7 +6,7 @@ model_paths:
 model_options:
   X_cat_names: ["comms"]
   y_name: "score"
-  model_type: "ElasticNetEmpirical"
+  model_type: "ElasticNetTaskCommunication"
   inversely_weight_tasks: True
   handle_na_values: "mean"
 

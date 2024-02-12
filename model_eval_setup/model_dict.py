@@ -19,13 +19,22 @@ model_dict = {"RandomForestRegressor":{"model":RandomForestRegressor,
 							{"name": "max_iter", "type": "range", "bounds":[200, 2000]},
 							{"name": "selection", "type": "choice", "values":["cyclic", "random"]}
 						]},
-				"LASSOEmpirical":{ "model": Lasso,
-					"params":[ {"name": "alpha", "type": "range", "bounds":[0.0001,0.1]} # previous empirical experiments have found better results with very small alphas.
-				]},
-				"ElasticNetEmpirical":{ "model": ElasticNet,
-					"params":[{"name": "alpha", "type": "range", "bounds":[0.0001,0.1]}, # using previous empirical bounds
-							{"name": "l1_ratio", "type": "range", "bounds":[0.2,1.0]},
-							{"name": "max_iter", "type": "range", "bounds":[200, 1000]},
+				"ElasticNetTaskCommunication":{ "model": ElasticNet,
+					"params":[{"name": "alpha", "type": "range", "bounds":[0.0001,0.2]}, # previous empirical bounds for task attributes/task complexity/communication: tended to be very small (0.005, 0.17)
+							{"name": "l1_ratio", "type": "range", "bounds":[0.0,1.0]},
+							{"name": "max_iter", "type": "range", "bounds":[200, 2000]},
+							{"name": "selection", "type": "choice", "values":["cyclic", "random"]}
+						]},
+				"ElasticNetComposition":{ "model": ElasticNet,
+					"params":[{"name": "alpha", "type": "range", "bounds":[1.0,2.0]}, # previous empirical bounds that worked better for composition: tended to be between 1 and 2 (1.33, 1.65)
+							{"name": "l1_ratio", "type": "range", "bounds":[0.0,1.0]},
+							{"name": "max_iter", "type": "range", "bounds":[200, 2000]},
+							{"name": "selection", "type": "choice", "values":["cyclic", "random"]}
+						]},
+				"ElasticNetPlayerCount":{ "model": ElasticNet,
+					"params":[{"name": "alpha", "type": "range", "bounds":[0.1,2.1]}, # previous empirical bounds that worked better for team size: tended to vary (0.131, 2.08)
+							{"name": "l1_ratio", "type": "range", "bounds":[0.0,1.0]},
+							{"name": "max_iter", "type": "range", "bounds":[200, 2000]},
 							{"name": "selection", "type": "choice", "values":["cyclic", "random"]}
 						]}
 			}
