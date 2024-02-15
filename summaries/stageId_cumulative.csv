@@ -1,0 +1,6 @@
+Feature,Mean,Standard Deviation,95% CI Lower,95% CI Upper
+Task Attributes,0.217,0.023,0.213,0.222
+Team Composition,-0.005,0.013,-0.008,-0.003
+Task Complexity,-0.009,0.011,-0.012,-0.007
+Communication Process,-0.01,0.012,-0.012,-0.007
+Team Size,-0.026,0.008,-0.027,-0.024
