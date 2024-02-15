@@ -77,6 +77,7 @@ if __name__ == "__main__":
 				raw_user_data_path = data_paths["raw_user_data_path"],
 				output_path = data_paths["output_cleaned"],
 				conversation_id = conv_featurizer_options["conversation_id"],
+				dv_id = cleaning_options["dv_id"],
 				use_mean_for_roundId = cleaning_options["use_mean_for_roundId"],
 				tiny = cleaning_options["tiny"],
 			)

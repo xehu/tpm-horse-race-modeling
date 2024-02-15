@@ -25,6 +25,7 @@ data_config_schema = {
         "na_fill_value": None, 
         "standardize_dv": True,
         "standardize_iv": True,
+        "dv_id": None,
         "use_mean_for_roundId": False,
         "tiny": False
     },
