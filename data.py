@@ -199,7 +199,8 @@ class HorseRaceDataSet:
         return(conversation)
 
     def standardize_df_by_group(self, df, grouper) -> pd.DataFrame:
-        non_binary_cols = df.columns[df.nunique() > 2]  # Identify non-binary columns; binary columns don't standardize well.
+        numeric_cols = df.select_dtypes(include=np.number)
+        non_binary_cols = numeric_cols.columns[df.nunique() > 2]  # Identify non-binary columns; binary columns don't standardize well.
         if grouper is not None:
             grouped = df.groupby(grouper)
             df[non_binary_cols] = grouped[non_binary_cols].transform(lambda x: (x - x.mean()) / x.std())
