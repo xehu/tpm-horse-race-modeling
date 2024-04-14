@@ -1,4 +1,5 @@
 model_paths:
+model_paths:
   HorseRaceDataSet_path: ./data_cache/multi_task_stageId_noncumulative.pkl
   optimization_output_path: ./model_eval_cache/optimal_params/stageId_noncumulative/
   evaluation_output_path: ./model_eval_cache/evaluation_outputs/stageId_noncumulative/
@@ -6,7 +7,7 @@ model_paths:
 model_options:
   X_cat_names: ["task_complexity"]
   y_name: "score"
-  model_type: "ElasticNetTaskCommunication"
+  model_type: "ElasticNet"
   inversely_weight_tasks: True
   handle_na_values: "mean"
 

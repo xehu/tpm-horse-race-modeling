@@ -14,7 +14,7 @@ model_dict = {"RandomForestRegressor":{"model":RandomForestRegressor,
 							{"name":"max_depth", "type":"range", "bounds":[1,10]},
 							{"name":"min_samples_leaf", "type":"range", "bounds":[1,5]}]},
 			   "ElasticNet":{ "model": ElasticNet,
-					"params":[{"name": "alpha", "type": "range", "bounds":[0.0,1.0]},
+					"params":[{"name": "alpha", "type": "range", "bounds":[0.0,2.0]},
 							{"name": "l1_ratio", "type": "range", "bounds":[0.0,1.0]},
 							{"name": "max_iter", "type": "range", "bounds":[200, 2000]},
 							{"name": "selection", "type": "choice", "values":["cyclic", "random"]}
