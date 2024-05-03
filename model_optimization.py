@@ -174,8 +174,11 @@ class HorseRaceOptimizedModel:
 			else:
 				sample_weight_loo = None
 
-			baseline_models.append(deepcopy(estimator.fit(X=X.drop(loo_index).values, y=y.drop(loo_index).values, sample_weight = sample_weight_loo)))
-			
+			if self.model_type != "MLPRegressor": # TODO -- make this more generalizable, but the MLPRegressor's .fit doesn't have a sample_weight parameter.
+				baseline_models.append(deepcopy(estimator.fit(X=X.drop(loo_index).values, y=y.drop(loo_index).values, sample_weight = sample_weight_loo)))
+			else:
+				baseline_models.append(deepcopy(estimator.fit(X=X.drop(loo_index).values, y=y.drop(loo_index).values)))
+
 		return baseline_models
 	
 	# This function computes q^2 (used as evaluation for the models)
