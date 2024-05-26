@@ -1,2 +1,5 @@
 .DS_Store
 __pycache__
+task_map_explorations_with_multitask/individuals.csv
+task_map_explorations_with_multitask/q2_from_diff_task_cols.csv
+

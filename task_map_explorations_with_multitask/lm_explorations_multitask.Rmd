@@ -1,0 +1,59 @@
+---
+title: "Testing Linear Regressions in R"
+output: html_document
+date: "2024-05-23"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(tidyverse)
+```
+
+First, let's ingest the data (this is the 10 most different tasks).
+```{r}
+# this is the "giant regression" with all the controls and interactions
+# data_10_most_diff <- read_csv('regression_data_10_most_different.csv')
+
+# this has ALL task features and controls
+# data_10_most_diff <- read_csv('team_multi_task_with_all_tasks_and_controls.csv')
+
+# this has ALL task features only
+# data_10_most_diff <- read_csv('team_multi_task_with_task_features.csv')
+
+# this has ALL task features only but for all 20 tasks
+data_10_most_diff <- read_csv('team_20_task_with_task_features.csv')
+
+# this has a limited set of task features, controls, and no interactions
+# data_10_most_diff <- read_csv('team_multi_task_data_with_controls.csv')
+# this has a limited set of task features, controls, and no interactions, plus duplicate rows all removed
+# data_10_most_diff <- read_csv('deduplicated_team_multi_task_data.csv')
+```
+
+Now let's look at all the columns
+```{r}
+# these are the predictors --- every single column!
+predictor_cols <- names(data_10_most_diff %>% select(-c("score")))
+
+reg_str <- ""
+for (i in 1:length(predictor_cols)){
+  if (i == 1) {
+    reg_str <- paste('`', predictor_cols[i], '`', sep = "")
+  } else {
+    reg_str <- paste(reg_str, "+ `", predictor_cols[i], '`', sep = "")
+  }
+}
+```
+
+```{r}
+regression_giant_specification <- paste("score ~", reg_str)
+```
+
+
+```{r}
+lm(regression_giant_specification, data_10_most_diff) %>% summary()
+```
+
+
+
+
