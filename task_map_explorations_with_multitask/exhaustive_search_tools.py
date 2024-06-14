@@ -232,23 +232,18 @@ of the possible combinations / ways of selecting task columns.
 """
 def parallel_q2(dataset, dv, filename, column_choice_combinations, results_df):
     num_threads = multiprocessing.cpu_count()  # Get as many processes as CPU's
-    if(results_df is not None):
-        existing_set = set(results_df["selected_task_cols"])
+    existing_set = set(results_df["selected_task_cols"])
 
     # append if it exists, and write a new file if it doesn't yet exist
     if (not os.path.isfile(filename)):
-        csv_opened = open(filename, 'w', newline='')
-    else:
-        csv_opened = open(filename, 'a', newline='')
+        results_df.to_csv(filename, index = False)
+        print("making new CSV...")
+
+    csv_opened = open(filename, 'a', newline='')
 
     with csv_opened as csvfile:
         fieldnames = ['selected_task_cols', 'q2']
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-
-        # write a header if the file if the file doesn't exist yet
-        if (not os.path.isfile(filename)):
-            writer.writeheader()
-
         queue = Queue()
 
         # This is the thread that consumes and appends to the CSV
@@ -335,8 +330,9 @@ def exhaustive_search_for_ncol_and_dv(ncol, dv, is_full):
         print(len(results_df))
         results = list(results_df.itertuples(index=False, name=None))
     else:
+        print("no current results dataframe found, starting anew...")
         results = []
-        results_df = None
+        results_df = pd.DataFrame({"selected_task_cols":[], "q2": []})
     
     if dv == "score":
         # this is the dataset without conversational features
