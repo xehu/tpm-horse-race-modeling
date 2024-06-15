@@ -49,7 +49,7 @@ full_multi_task_data = full_multi_task_data.rename(columns = {"task": "task_name
 full_multi_task_data = full_multi_task_data.groupby('stageId').apply(lambda x: x.loc[x['score'].idxmax()]).reset_index(drop=True)
 
 # task map
-task_map = pd.read_csv('task_map.csv')
+task_map = pd.read_csv('../features/task-mapping/task_map.csv')
 task_map = task_map.rename(columns = {"task": "task_name"})
 
 task_name_mapping = {
@@ -106,7 +106,7 @@ full_multi_task_data.loc[:, "task_name"] = full_multi_task_data["task_name"].rep
 task_cols_to_use = task_map.drop(["task_name", "Type 6 (Mixed-Motive)"], axis = 1).columns
 # merge the multi-task data with the task map
 full_multi_task_data = pd.merge(left = full_multi_task_data, right = task_map, on = "task_name", how = "left")
-communication_features = pd.read_csv("full_multi_task_messages_conversation_level.csv")
+communication_features = pd.read_csv("./tpm_outputs/conv/full_multi_task_messages_conversation_level.csv")
 communication_features = communication_features.rename(columns={"conversation_num": "stageId"})
 communication_features.columns
 communication_features = communication_features.drop(columns = ['speaker_nickname', 'message',
