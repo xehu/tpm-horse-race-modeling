@@ -1,15 +1,15 @@
 model_paths:
-  HorseRaceDataSet_path: ./data_cache/multi_task_stageId_noncumulative.pkl
+  HorseRaceDataSet_path: ./data_cache/jun_2024/full_multi_task_stageId_noncumulative.pkl
   optimization_output_path: ./model_eval_cache/optimal_params/stageId_noncumulative/
   evaluation_output_path: ./model_eval_cache/evaluation_outputs/stageId_noncumulative/
 
 model_options:
   X_cat_names: ["size"]
   y_name: "score"
-  model_type: "ElasticNetPlayerCount"
-  inversely_weight_tasks: True
+  model_type: "ElasticNet"
+  inversely_weight_tasks: False
   handle_na_values: "mean"
 
 optimization_options:
-  n_iterations: 100
+  n_iterations: 900
   total_trials: 25

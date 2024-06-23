@@ -19,29 +19,11 @@ model_dict = {"MLPRegressor":{"model": MLPRegressor,
                             {"name":"max_iter", "type":"range", "bounds":[200, 800]}
                         ]},
 				"RandomForestRegressor":{"model":RandomForestRegressor,
-					"params":[{"name":"n_estimators", "type":"range", "bounds":[2,200]},
+					"params":[{"name":"n_estimators", "type":"range", "bounds":[2,1000]},
 							{"name":"max_depth", "type":"range", "bounds":[1,10]},
 							{"name":"min_samples_leaf", "type":"range", "bounds":[1,5]}]},
 			   "ElasticNet":{ "model": ElasticNet,
 					"params":[{"name": "alpha", "type": "range", "bounds":[0.0,2.0]},
-							{"name": "l1_ratio", "type": "range", "bounds":[0.0,1.0]},
-							{"name": "max_iter", "type": "range", "bounds":[200, 2000]},
-							{"name": "selection", "type": "choice", "values":["cyclic", "random"]}
-						]},
-				"ElasticNetTaskCommunication":{ "model": ElasticNet,
-					"params":[{"name": "alpha", "type": "range", "bounds":[0.0001,0.2]}, # previous empirical bounds for task attributes/task complexity/communication: tended to be very small (0.005, 0.17)
-							{"name": "l1_ratio", "type": "range", "bounds":[0.0,1.0]},
-							{"name": "max_iter", "type": "range", "bounds":[200, 2000]},
-							{"name": "selection", "type": "choice", "values":["cyclic", "random"]}
-						]},
-				"ElasticNetComposition":{ "model": ElasticNet,
-					"params":[{"name": "alpha", "type": "range", "bounds":[1.0,2.0]}, # previous empirical bounds that worked better for composition: tended to be between 1 and 2 (1.33, 1.65)
-							{"name": "l1_ratio", "type": "range", "bounds":[0.0,1.0]},
-							{"name": "max_iter", "type": "range", "bounds":[200, 2000]},
-							{"name": "selection", "type": "choice", "values":["cyclic", "random"]}
-						]},
-				"ElasticNetPlayerCount":{ "model": ElasticNet,
-					"params":[{"name": "alpha", "type": "range", "bounds":[0.1,2.1]}, # previous empirical bounds that worked better for team size: tended to vary (0.131, 2.08)
 							{"name": "l1_ratio", "type": "range", "bounds":[0.0,1.0]},
 							{"name": "max_iter", "type": "range", "bounds":[200, 2000]},
 							{"name": "selection", "type": "choice", "values":["cyclic", "random"]}

@@ -18,6 +18,7 @@ import numpy as np
 import pickle
 from sklearn.linear_model import ElasticNet
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.linear_model import Lasso
 from sklearn.impute import SimpleImputer
 import ast 
 from tqdm import tqdm
@@ -76,50 +77,87 @@ class HorseRaceModelEvaluator:
 	"""
 	Since we have an imbalance in the number of samples we have from different tasks, we need to inversely
 	weight the data based on the task.
+
+	TODO -- this functionality hasn't been recreated because it was based on the previous leave-one-instance model
 	"""
-	def get_sample_weighting(self, task_names):
-		task_proportions = task_names.value_counts()/len(task_names)
-		return(task_names.apply(lambda task: 1 / task_proportions[task]))
+	# def get_sample_weighting(self, task_names):
+	# 	task_proportions = task_names.value_counts()/len(task_names)
+	# 	return(task_names.apply(lambda task: 1 / task_proportions[task]))
 
 	"""
-	Credit for q2_baseline_models and q2_score: Mohammed Alsobay
+	Q^2 functions for evalutation
 	"""
-	def q2_baseline_models(self, estimator, X, y, task_names):
-		baseline_models = []
-
-		sample_weights = None
-		if(self.HorseRaceOptimizedModel.inversely_weight_tasks):
-				sample_weights = self.get_sample_weighting(task_names)
+	def reshape_x_y(self, x, y):
+		if(isinstance(x, pd.Series)):
+			x = np.asarray(x).reshape(-1, 1)
+		else:
+			x = np.asarray(x)
 		
-		for loo_index in self.HorseRaceOptimizedModel.X.index:
-			if hasattr(estimator, "random_state"):
-				estimator.random_state = loo_index	
-			if (self.HorseRaceOptimizedModel.inversely_weight_tasks):
-				sample_weight_loo = sample_weights.drop(loo_index)
-			else:
-				sample_weight_loo = None
+		y = np.asarray(y).reshape(-1, 1)
+		return(x, y)
 
-			baseline_models.append(deepcopy(estimator.fit(X=X.drop(loo_index).values, y=y.drop(loo_index).values, sample_weight = sample_weight_loo)))
+	def q2_task_holdout_helper(self, x_train, x_test, y_train, y_test, estimator):
+		
+		# some reshaping
+		x_train_array, y_train_array = self.reshape_x_y(x_train, y_train)
+		x_test_array, y_test_array = self.reshape_x_y(x_test, y_test)
+
+		# Fit the model and get the error
+		fitted_model = estimator.fit(X=x_train_array, y=y_train_array.ravel())
+		
+		# save prediction error
+		prediction = fitted_model.predict(x_test_array)
+
+		# flatten all arrays
+		y_test_array = np.asarray(y_test_array).flatten()
+		prediction = np.asarray(prediction).flatten()
+
+		squared_model_prediction_error = (y_test_array - prediction) ** 2
+
+		# save total error for this fold
+		squared_average_prediction_error = (y_test_array - np.mean(y_train_array)) ** 2
+
+		return squared_model_prediction_error, squared_average_prediction_error
+
+	"""
+	This is the version of q^2 that holds out EVERYTHING associated with a given task
+
+	It trains on all task instances from the "seen" classes, and it tests on task instances of held-out (unseen) classes.
+
+	NOTE: this version of the function assumes that x and y are passed in with a column called "task_name"
+	"""
+
+	def get_q2(self, y, x, estimator = Lasso(), num_task_holdouts = 1):
+
+		squared_model_prediction_errors = []
+		squared_average_prediction_errors = []
+
+		num_total_tasks = x["task_name"].nunique()
+
+		# randomly hold out `num_task_holdouts`
+		all_possible_task_combos = list(itertools.combinations((x["task_name"].unique()), num_total_tasks - num_task_holdouts))
+		
+		for sample in all_possible_task_combos:
+
+			x_train_tasks = x[x["task_name"].isin(sample)].drop("task_name", axis = 1)
+			x_test_tasks = x[~x["task_name"].isin(sample)].drop("task_name", axis = 1)
+
+			y_train_tasks = y[y["task_name"].isin(sample)].drop("task_name", axis = 1)
+			y_test_tasks = y[~y["task_name"].isin(sample)].drop("task_name", axis = 1)
+
+			# get evaluation score by training on the training tasks and evaluating on the holdout tasks
+			squared_model_prediction_error, squared_average_prediction_error = self.q2_task_holdout_helper(x_train_tasks, x_test_tasks, y_train_tasks, y_test_tasks, estimator)
 			
-		return baseline_models
-	
-	# This function computes q^2 (used as evaluation for the models)
-	def q2_score(self, estimator, X, y, task_names):
-		models = self.q2_baseline_models(estimator, X, y, task_names)
-		q2_means = []
-		q2_preds = []
-		
-		for loo_index in X.index:
-			q2_means.append(y.drop(loo_index).mean())
-			q2_preds.append(models[loo_index].predict(np.array(X.iloc[loo_index]).reshape(1,-1))[0])
-		
-		q2 = 1 - np.sum((np.array(q2_preds) - np.array(y))**2) / np.sum((np.array(q2_means) - np.array(y))**2)
+			squared_model_prediction_errors.append(squared_model_prediction_error)
+			squared_average_prediction_errors.append(squared_average_prediction_error)
 
-		return q2
+		squared_model_prediction_error = np.asarray(squared_model_prediction_error).flatten()
+		squared_average_prediction_error = np.asarray(squared_average_prediction_error).flatten()
+
+		return 1 - (np.sum(squared_model_prediction_error) / np.sum(squared_average_prediction_error))
 
 	# Fit a model based on the parameters
 	def call_model(self, X, y, task_names):
-
 		optimal_params = self.HorseRaceOptimizedModel.optimal_parameters
 
 		# Set up model with the optimal parameters
@@ -133,8 +171,16 @@ class HorseRaceModelEvaluator:
 			param_value = optimal_params[param_name]
 			estimator.set_params(**{param_name: param_value})
 
+		# attach the task_names to y and X before putting into the q^2 function
+		# add a column called "task_name", as this is required for the leave-a-task-out Q^2
+		y_task_appended = pd.DataFrame(y.copy())
+		y_task_appended["task_name"] = task_names
+
+		X_task_appended = X.copy()
+		X_task_appended["task_name"] = task_names
+
 		# Get the q^2 of model
-		return self.q2_score(estimator, X, y, task_names)
+		return self.get_q2(y_task_appended, X_task_appended, estimator)
 
 	def evaluate_optimal_model(self):
 		os.makedirs(os.path.dirname(self.final_output_path), exist_ok=True)

@@ -15,7 +15,7 @@ import yaml
 from data_config.data_config_schema import data_config_schema
 import argparse
 import pickle
-clean_multi_task_data = import_module('tpm-data.data_cleaning.clean_multi_task_data').clean_multi_task_data
+clean_multi_task_data = import_module('tpm-data.data_cleaning.clean_multi_task_3_wave').clean_multi_task_data
 
 def read_and_validate_config(data_config_schema, user_provided_config):
 	with open(user_provided_config, 'r') as file:
@@ -44,7 +44,7 @@ def call_FeatureBuilder(data_paths, conv_featurizer_options):
 	FeatureBuilder = import_module("features.team-process-map.feature_engine.feature_builder").FeatureBuilder
 
 	feature_builder = FeatureBuilder(
-		input_file_path = data_paths["output_cleaned"],
+		input_df = pd.read_csv(data_paths["output_cleaned"]),
 		vector_directory = data_paths["vector_directory"],
 		output_file_path_chat_level = data_paths["output_chat"],
 		output_file_path_user_level = data_paths["output_user"],
@@ -71,16 +71,9 @@ if __name__ == "__main__":
 
 		# Raw Data Cleaning Stage
 		if not os.path.isfile(data_paths["output_cleaned"]):
-			clean_multi_task_data(
-				raw_round_data_path = data_paths["raw_round_data_path"],
-				raw_stage_data_path = data_paths["raw_stage_data_path"],
-				raw_user_data_path = data_paths["raw_user_data_path"],
-				output_path = data_paths["output_cleaned"],
+			clean_multi_task_data(output_path = data_paths["output_cleaned"],
 				conversation_id = conv_featurizer_options["conversation_id"],
-				dv_id = cleaning_options["dv_id"],
-				use_mean_for_roundId = cleaning_options["use_mean_for_roundId"],
-				tiny = cleaning_options["tiny"],
-			)
+				use_mean_for_roundId = cleaning_options["use_mean_for_roundId"])
 
 		# Featurization Stage
 		# If data is not featurizer, run the FeatureBuilder
@@ -98,13 +91,14 @@ if __name__ == "__main__":
 				standardize_dv = cleaning_options["standardize_dv"],
 				standardize_iv = cleaning_options["standardize_iv"],
 				task_name_index = format_options["task_name_index"],
-				complexity_name_index = format_options["complexity_name_index"],
 				total_messages_varname = format_options["total_messages_varname"],
 				team_size_varname = format_options["team_size_varname"],
 				dvs = variable_options["dvs"],
 				composition_vars = variable_options["composition_vars"],
 				task_vars = variable_options["task_vars"],
-				task_name_mapping = variable_options["task_name_mapping"]
+				custom_task_predictors = variable_options["custom_task_predictors"],
+				task_name_mapping = variable_options["task_name_mapping"],
+				complexity_to_drop = variable_options["complexity_to_drop"]
 			)
 
 			# Caching Stage

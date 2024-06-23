@@ -1,9 +1,6 @@
 # data_config_schema.py
 data_config_schema = {
     "data_paths": {
-        "raw_round_data_path": str,
-        "raw_stage_data_path": str,
-        "raw_user_data_path": str,
         "vector_directory": str,
         "output_cleaned": str,
         "output_chat": str,
@@ -25,13 +22,10 @@ data_config_schema = {
         "na_fill_value": None, 
         "standardize_dv": True,
         "standardize_iv": True,
-        "dv_id": None,
         "use_mean_for_roundId": False,
-        "tiny": False
     },
     "format_options":{
         "task_name_index": 0,
-        "complexity_name_index": 1,
         "total_messages_varname": "sum_num_messages",
         "team_size_varname": "playerCount"
     },
@@ -39,6 +33,8 @@ data_config_schema = {
         "dvs": None,
         "composition_vars": None,
         "task_vars": None,
-        "task_name_mapping": None
+        "custom_task_predictors": None,
+        "task_name_mapping": None,
+        "complexity_to_drop": None
     }
 }

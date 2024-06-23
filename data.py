@@ -35,17 +35,19 @@ class HorseRaceDataSet:
         min_num_chats: int,
         num_conversation_components = None,
         task_name_index = 0,
-        complexity_name_index = 1,
         total_messages_varname = "sum_num_messages",
         team_size_varname = "playerCount",
         handle_na_values = "mean",
+        custom_task_cols = [],
         na_fill_value = None,
         standardize_dv = True,
         standardize_iv = True,
         dvs = None,
         composition_vars = None,
         task_vars = None,
+        custom_task_predictors = None,
         task_name_mapping = None,
+        complexity_to_drop = None
     ) -> None:
         """
         Parameters:
@@ -76,8 +78,10 @@ class HorseRaceDataSet:
         If the following optional parameters are None, they are set to values specific to the multi-task dataset, defined later in the constructor.
         @dvs (Defaults to None): custom list of dependent variables of interest
         @composition_vars (Defaults to None): custom list of composition variables of interest
-        @task_vars (Defaults to None): custom list of task variable names
+        @task_vars (Defaults to None): custom list of task variable names in the data (this is the *target dataset*, not the Task Map!)
+        @custom_task_predictors (Defaults to None): custom list of task predictors (e.g., columns in the Task Map) desired by the user; otherwise, we use the full space!
         @task_name_mapping (Defaults to None): custom dictionary mapping variable names in the dataset (keys) to Task Map variable names (values)
+        @complexity_to_drop (Defaults to None): drops a complexity column (e.g., "Low", "Medium", "High") as the reference class
         """
 
         self.data_path = data_path
@@ -85,11 +89,38 @@ class HorseRaceDataSet:
 
         task_map_path = './features/task-mapping/task_map.csv'
         self.task_map = pd.read_csv(task_map_path)
+        self.task_map = self.task_map.rename(
+            columns = {
+                "Q1concept_behav": "Conceptual-Behavioral",
+                "Q3type_1_planning": "Type 1 (Planning)",
+                "Q4type_2_generate": "Type 2 (Generate)",
+                "Q6type_5_cc": "Type 5 (Cognitive Conflict)",
+                "Q7type_7_battle": "Type 7 (Battle)",
+                "Q8type_8_performance": "Type 8 (Performance)",
+                "Q9divisible_unitary": "Divisible-Unitary",
+                "Q10maximizing": "Maximizing",
+                "Q11optimizing": "Optimizing",
+                "Q13outcome_multip": "Outcome Multiplicity",
+                "Q14sol_scheme_mul": "Solution Scheme Multiplicity",
+                "Q15dec_verifiability": "Decision Verifiability",
+                "Q16shared_knowledge": "Shared Knowledge",
+                "Q17within_sys_sol": "Within-System Solution",
+                "Q18ans_recog": "Answer Recognizability",
+                "Q19time_solvability": "Time Solvability",
+                "Q20type_3_type_4": "Type 3 and Type 4 (Objective Correctness)",
+                "Q22confl_tradeoffs": "Conflicting Tradeoffs",
+                "Q23ss_out_uncert": "Solution Scheme Outcome Uncertainty",
+                "Q24eureka_question": "Eureka Question",
+                "Q2intel_manip_1" : "Intellectual-Manipulative",
+                "Q21intellective_judg_1" : "Intellective-Judgmental",
+                "Q5creativity_input_1" : "Creativity Input",
+                "Q25_type6_mixed_motive" : "Type 6 (Mixed-Motive)"
+            }
+        )
 
         self.min_num_chats = min_num_chats
         self.num_conversation_components = num_conversation_components
         self.task_name_index = task_name_index
-        self.complexity_name_index = complexity_name_index
         self.total_messages_varname = total_messages_varname
         self.team_size_varname = team_size_varname
 
@@ -103,15 +134,15 @@ class HorseRaceDataSet:
             self.imputation_option = handle_na_values
 
         self.na_fill_value = na_fill_value
-
         self.standardize_dv = standardize_dv
         self.standardize_iv = standardize_iv
+        self.complexity_to_drop = complexity_to_drop
 
         # Default DV's, Composition Variables, and Task Name Map (this is for the multi-task dataset)
-        dvs_default = ["score","speed","efficiency","raw_duration_min","default_duration_min"]
+        dvs_default = ["score","duration","efficiency"]
         composition_default = ['birth_year', 'CRT', 'income_max', 'income_min', 'IRCS_GS', 'IRCS_GV', 'IRCS_IB', 'IRCS_IR',
                     'IRCS_IV', 'IRCS_RS', 'political_fiscal', 'political_social', 'RME', 'country', 'education_level', 'gender', 'marital_status', 'political_party', 'race', 'playerCount']
-        task_vars_default =  ['task', 'complexity']
+        task_vars_default =  ['task', 'Low', 'Medium', 'High']
         task_name_mapping_default = {
             "Sudoku": "Sudoku",
             "Moral Reasoning": "Moral Reasoning (Disciplinary Action Case)",
@@ -122,7 +153,15 @@ class HorseRaceDataSet:
             "Allocating Resources": "Allocating resources to programs",
             "Divergent Association": "Divergent Association Task",
             "Word Construction": "Word construction from a subset of letters",
-            "Whac a Mole": "Whac-A-Mole"
+            "Whac a Mole": "Whac-A-Mole",
+            "Random Dot Motion": "Random dot motion",
+            "Recall Association": "Recall association",
+            "Recall Word Lists": "Recall word lists",
+            "Typing": "Typing game",
+            "Unscramble Words": "Unscramble words (anagrams)",
+            "WildCam": "Wildcam Gorongosa (Zooniverse)",
+            "Advertisement Writing": "Advertisement writing",
+            "Putting Food Into Categories": "Putting food into categories"
         }
 
         self.dvs = dvs if dvs is not None else dvs_default
@@ -131,7 +170,7 @@ class HorseRaceDataSet:
         self.composition_vars.remove(self.team_size_varname)
         self.task_vars = task_vars if task_vars is not None else task_vars_default
         self.task_name_mapping = task_name_mapping if task_name_mapping is not None else task_name_mapping_default
-
+        
         # Assertions that parameters are the right type
         assert type(self.dvs)==list, "The optional parameter `dvs` should be a list."
         assert type(self.composition_vars)==list, "The optional parameter `composition_vars` should be a list."
@@ -140,7 +179,16 @@ class HorseRaceDataSet:
 
         # set the column containing the task name
         self.task_name_col = self.task_vars[self.task_name_index]
-        self.complexity_col = self.task_vars[self.complexity_name_index]
+
+        # set task complexity columns and drop a complexity level if required
+        self.complexity_cols = self.task_vars.copy()
+        self.complexity_cols.remove(self.task_name_col)
+        if (self.complexity_to_drop in self.complexity_cols):
+            self.complexity_cols.remove(self.complexity_to_drop)
+
+        # these are the task predictors we will actually use; by default, we include all task columns
+        self.custom_task_predictors = custom_task_predictors if custom_task_predictors is not None else self.task_name_mapping.keys()
+        assert type(self.custom_task_predictors)==list, "The optional parameter `custom_task_predictors` should be a list."
 
         # remove the "message" column if present
         if "message" in self.data.columns:
@@ -173,18 +221,21 @@ class HorseRaceDataSet:
         # Merge with Task Map
         task.loc[:, self.task_name_col] = task[self.task_name_col].replace(self.task_name_mapping)
         task = pd.merge(left=task, right=self.task_map, on = self.task_name_col, how='left')
+
+        # filter for the custom task features
+        # note that the complexity is *included* in the task features
+        task = task[self.custom_task_predictors + self.complexity_cols + [self.task_name_col]]
         
         # Save Task Name in another column
         self.task_name = task[self.task_name_col]
 
-        # Drop task name and task complexity from the task features
-        task.drop([self.task_name_col, self.complexity_col], axis=1, inplace=True)
+        # Drop task name from the task features
+        task.drop([self.task_name_col], axis=1, inplace=True)
 
         return(task)
 
     def process_task_complexity(self, data) -> pd.DataFrame:
-        complexity_dummies = pd.get_dummies(data[self.complexity_col])
-        return complexity_dummies
+        return data[self.complexity_cols] # It's already in the data!
 
     def process_composition_data(self, data) -> pd.DataFrame:
         composition = data[[col for col in data.columns if any(keyword in col for keyword in self.composition_vars)]]
@@ -257,7 +308,8 @@ class HorseRaceDataSet:
             composition_cols.append(varname + "_mean")
             composition_cols.append(varname + "_std")
         assert set(composition_cols) <= set(self.data.columns), "The following desired composition variables are not found in the data: " + str(set(composition_cols).difference(set(self.data.columns)))
-        assert set(self.task_vars)<=set(self.data.columns), "The following desired task variables are not found in the data: " + str(set(task_vars).difference(set(self.data.columns)))
+        assert set(self.task_vars)<=set(self.data.columns), "The following desired task variables are not found in the data: " + str(set(self.task_vars).difference(set(self.data.columns)))
+        assert set(self.custom_task_predictors)<=set(self.task_map.columns), "The following desired task variables are not found in the Task Map: " + str(set(self.custom_task_predictors).difference(set(self.task_map.columns)))
         assert set(self.task_name_mapping.keys()) <= set(self.data[self.task_name_col].drop_duplicates()), "The desired task names in the dictionary are not found in the data."
         assert self.total_messages_varname in self.data.columns, "There is no variable for the total number of messages in the dataset; this variable is required for processing the data."
         assert self.team_size_varname in self.data.columns, "There is no variable for the total number of members in the team; this variable is required for processing the data."
