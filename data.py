@@ -44,6 +44,7 @@ class HorseRaceDataSet:
         standardize_iv = True,
         dvs = None,
         composition_vars = None,
+        custom_tasks_to_include = None,
         task_vars = None,
         custom_task_predictors = None,
         task_name_mapping = None,
@@ -78,6 +79,7 @@ class HorseRaceDataSet:
         If the following optional parameters are None, they are set to values specific to the multi-task dataset, defined later in the constructor.
         @dvs (Defaults to None): custom list of dependent variables of interest
         @composition_vars (Defaults to None): custom list of composition variables of interest
+        @custom_tasks_to_include (Defaults to None): custom list of tasks that we want to include in the data; otherwise, we use all tasks.
         @task_vars (Defaults to None): custom list of task variable names in the data (this is the *target dataset*, not the Task Map!)
         @custom_task_predictors (Defaults to None): custom list of task predictors (e.g., columns in the Task Map) desired by the user; otherwise, we use the full space!
         @task_name_mapping (Defaults to None): custom dictionary mapping variable names in the dataset (keys) to Task Map variable names (values)
@@ -161,10 +163,13 @@ class HorseRaceDataSet:
             "Unscramble Words": "Unscramble words (anagrams)",
             "WildCam": "Wildcam Gorongosa (Zooniverse)",
             "Advertisement Writing": "Advertisement writing",
-            "Putting Food Into Categories": "Putting food into categories"
+            "Putting Food Into Categories": "Putting food into categories",
+            "Wildcat Wells": "Wildcat Wells",
+            "Logic Problem": "Logic Problem"
         }
 
         self.dvs = dvs if dvs is not None else dvs_default
+        self.custom_tasks_to_include = custom_tasks_to_include if custom_tasks_to_include is not None else list(task_name_mapping_default.values())
         self.composition_vars = composition_vars if composition_vars is not None else composition_default
         # Break out the team size from the composition variables
         self.composition_vars.remove(self.team_size_varname)
@@ -174,6 +179,7 @@ class HorseRaceDataSet:
         # Assertions that parameters are the right type
         assert type(self.dvs)==list, "The optional parameter `dvs` should be a list."
         assert type(self.composition_vars)==list, "The optional parameter `composition_vars` should be a list."
+        assert type(self.custom_tasks_to_include)==list, "The optional parameter `custom_tasks_to_include` should be a list."
         assert type(self.task_vars)==list, "The optional parameter `task_vars` should be a list."
         assert type(self.task_name_mapping)==dict, "The optional parameter `task_name_mapping` should be a dict."
 
@@ -187,7 +193,7 @@ class HorseRaceDataSet:
             self.complexity_cols.remove(self.complexity_to_drop)
 
         # these are the task predictors we will actually use; by default, we include all task columns
-        self.custom_task_predictors = custom_task_predictors if custom_task_predictors is not None else self.task_name_mapping.keys()
+        self.custom_task_predictors = custom_task_predictors if custom_task_predictors is not None else list(self.task_map.drop("task", axis = 1).columns)
         assert type(self.custom_task_predictors)==list, "The optional parameter `custom_task_predictors` should be a list."
 
         # remove the "message" column if present
@@ -221,6 +227,12 @@ class HorseRaceDataSet:
         # Merge with Task Map
         task.loc[:, self.task_name_col] = task[self.task_name_col].replace(self.task_name_mapping)
         task = pd.merge(left=task, right=self.task_map, on = self.task_name_col, how='left')
+
+        # filter tasks to the list desired
+        task = task[task[self.task_name_col].isin(self.custom_tasks_to_include)]
+
+        # print out the tasks that somehow got filtered out?
+        task_dropped = task[~task[self.task_name_col].isin(self.custom_tasks_to_include)]
 
         # filter for the custom task features
         # note that the complexity is *included* in the task features

@@ -32,6 +32,7 @@ data_config_schema = {
     "variable_options":{
         "dvs": None,
         "composition_vars": None,
+        "custom_tasks_to_include": None,
         "task_vars": None,
         "custom_task_predictors": None,
         "task_name_mapping": None,

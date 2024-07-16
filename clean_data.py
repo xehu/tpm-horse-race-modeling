@@ -94,6 +94,7 @@ if __name__ == "__main__":
 				total_messages_varname = format_options["total_messages_varname"],
 				team_size_varname = format_options["team_size_varname"],
 				dvs = variable_options["dvs"],
+				custom_tasks_to_include = variable_options["custom_tasks_to_include"],
 				composition_vars = variable_options["composition_vars"],
 				task_vars = variable_options["task_vars"],
 				custom_task_predictors = variable_options["custom_task_predictors"],

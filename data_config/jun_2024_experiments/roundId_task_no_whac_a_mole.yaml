@@ -1,0 +1,62 @@
+data_paths:
+  vector_directory: ./tpm-data/vector_data/
+  output_cleaned: ./tpm-data/cleaned_data/jun_2024/full_multi_task_roundId_task.csv
+  output_chat: ./data_cache/raw_output/chat/jun_2024/full_multi_task_roundId_task_chat.csv
+  output_user: ./data_cache/raw_output/user/jun_2024/full_multi_task_roundId_task_user.csv
+  output_conv: ./data_cache/raw_output/conv/jun_2024/full_multi_task_roundId_task_conv.csv
+  output_pkl: ./data_cache/jun_2024/noWhac_multi_task_roundId_task.pkl
+
+conv_featurizer_options:
+  analyze_first_pct: 
+    - 1.0
+  turns: False
+  conversation_id: roundId
+  cumulative_grouping: False
+  within_task: True
+
+cleaning_options:
+  min_num_chats: 0
+  num_conversation_components: 5
+  handle_na_values: "mean"
+  standardize_dv: False
+  use_mean_for_roundId: False
+  tiny: False
+
+format_options:
+  task_name_index: 0
+  total_messages_varname: sum_num_messages
+  team_size_varname: playerCount
+
+variable_options:
+  custom_tasks_to_include:
+    - 'Wolf, goat and cabbage transfer'
+    - 'Sudoku'
+    - 'Writing story'
+    - 'Guessing the correlation'
+    - 'Recall word lists'
+    - 'Logic Problem'
+    - 'Room assignment task'
+    - 'Allocating resources to programs'
+    - 'Moral Reasoning (Disciplinary Action Case)'
+    - 'Typing game'
+    - 'Advertisement writing'
+    - 'Unscramble words (anagrams)'
+    - 'Recall association'
+    - 'Divergent Association Task'
+    - 'Word construction from a subset of letters'
+    - 'Putting food into categories'
+    - 'Random dot motion'
+    - 'Wildcam Gorongosa (Zooniverse)'
+    - 'Wildcat Wells'
+  custom_task_predictors:
+    - 'Type 2 (Generate)'
+    - 'Type 5 (Cognitive Conflict)'
+    - 'Type 8 (Performance)'
+    - 'Solution Scheme Multiplicity'
+    - 'Shared Knowledge'
+    - 'Within-System Solution'
+    - 'Answer Recognizability'
+    - 'Conflicting Tradeoffs'
+    - 'Intellective-Judgmental'
+    - 'Creativity Input'
+  complexity_to_drop: "Low"
