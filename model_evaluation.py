@@ -197,6 +197,7 @@ class HorseRaceModelEvaluator:
 			
 			X_resampled = data_resampled[self.HorseRaceOptimizedModel.X.columns]
 			y_resampled = data_resampled[self.HorseRaceOptimizedModel.y_name]
+
 			task_names_resampled = data_resampled[self.HorseRaceOptimizedModel.HorseRaceData.task_name.name]
 			
 			self.lock.acquire() # Lock the evaluation & writing of one file

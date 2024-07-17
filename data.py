@@ -257,8 +257,11 @@ class HorseRaceDataSet:
         return data[self.team_size_varname]
 
     def process_communication_data(self, data) -> pd.DataFrame:  
-        # assumes all features that are not dv's or compositions variables are communication variables
-        conversation = data.drop(columns= self.dvs+list(self.composition_features.columns))._get_numeric_data()
+        ### TODO: We need a way of getting the communication variables -- right now, we are just going to read them in
+        features_txt = open("./reference-assets/conv_features.txt", "r").read()
+        conversation_cols = features_txt.split(',')
+        conversation_cols_in_data = list(set(conversation_cols).intersection(set(data.columns)))
+        conversation = data[conversation_cols_in_data]._get_numeric_data()
         return(conversation)
 
     def standardize_df_by_group(self, df, grouper) -> pd.DataFrame:
@@ -362,6 +365,8 @@ class HorseRaceDataSet:
 
         # Conversation data
         self.conversation_features = self.process_communication_data(data)
+        # Store the original conversation features
+        self.conversation_features_original = self.conversation_features
         if(self.num_conversation_components is not None):
             self.conversation_features = self.get_first_n_pcs(self.conversation_features, self.num_conversation_components)
         if(self.standardize_iv):
